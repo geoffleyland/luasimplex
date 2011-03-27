@@ -1,0 +1,21 @@
+luasimplex
+
+1. What?
+
+luasimplex is an implementation of the simplex method for solving linear
+programming problems written in Lua.
+
+2. Why?
+
+It'd be nice if Rima had an LP solver that worked "out of the box" so you could
+at least get started without having to download and build a real solver.
+
+3. Requirements
+
+Lua or LuaJIT, and, if you want to run the netlib tests, lfs and the netlib test
+data.
+
+4. Issues
+
+Speed.  Numerical stability.
+
