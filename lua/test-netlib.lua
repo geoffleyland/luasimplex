@@ -193,6 +193,8 @@ for _, t in ipairs(tests) do
     
     local status, o, time = true
 
+    collectgarbage("collect")
+
     if speed == "display" then
       o, _, iterations = rsm.solve(M, S)
     elseif speed == "check" then
