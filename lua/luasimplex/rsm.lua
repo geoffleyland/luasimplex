@@ -1,6 +1,9 @@
 local math = require("math")
 local error, select = error, select
 
+local luasimplex = require("luasimplex")
+local iarray, darray = luasimplex.iarray, luasimplex.darray
+
 local rsm = {}
 setfenv(1, rsm)
 
@@ -12,41 +15,6 @@ local NONBASIC_LOWER = 1
 local NONBASIC_UPPER = -1
 local NONBASIC_FREE = 2
 local BASIC = 0
-
-
--- FFI-aware array construction ------------------------------------------------
-
-local darray, iarray
-
-local function array_init()
-  if jit and jit.status and jit.status() then
-    local ok, ffi = pcall(require, "ffi")
-    if ok then
-      local darrayi = ffi.typeof("double[?]")
-      local iarrayi = ffi.typeof("int[?]")
-      darray = function(n, ...) if select('#', ...) == 1 then return darrayi(n+1, select(1, ...)) else return darrayi(n+1, 0, ...) end end
-      iarray = function(n, ...) if select('#', ...) == 1 then return iarrayi(n+1, select(1, ...)) else return iarrayi(n+1, 0, ...) end end
-      return
-    end
-  end
-  darray = function(n, ...)
-    local a = {...}
-    local l = select('#', ...)
-    if l == 0 then
-      for i = 1, n do a[i] = 0 end
-    elseif l == 1 then
-      local v = select(1, ...)
-      for i = 2, n do a[i] = v end
-    end
-    return a
-  end
-  iarray = darray
-end
-
-array_init()
-
-rsm.iarray = iarray
-rsm.darray = darray
 
 
 -- Computation parts -----------------------------------------------------------
@@ -215,7 +183,6 @@ end
 
 
 -- Initialisation --------------------------------------------------------------
-
 
 local function initialise_real_variables(M, I)
   local nvars, nrows, tvars = M.nvars, M.nrows, M.nvars + M.nrows

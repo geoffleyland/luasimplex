@@ -4,7 +4,7 @@ local tostring = tostring
 local print = print
 local tonumber = tonumber
 
-local rsm = require("luasimplex.rsm")
+local luasimplex = require("luasimplex")
 
 local mps = {}
 setfenv(1, mps)
@@ -190,10 +190,10 @@ function read(f)
     nvars = nvars,
     nrows = nrows,
     A = {},
-    b = rsm.darray(nrows),
-    c = rsm.darray(nvars),
-    xl = rsm.darray(nvars),
-    xu = rsm.darray(nvars),
+    b = luasimplex.darray(nrows),
+    c = luasimplex.darray(nvars),
+    xl = luasimplex.darray(nvars),
+    xu = luasimplex.darray(nvars),
   }
 
   -- Add constraints to model
@@ -202,7 +202,7 @@ function read(f)
     M.constraint_names[i] = r.name
     M.b[i] = r.rhs
     local elements = #r.indexes
-    local a = { name = r.name, elements = elements, indexes = rsm.iarray(elements), values = rsm.darray(elements) }
+    local a = { name = r.name, elements = elements, indexes = luasimplex.iarray(elements), values = luasimplex.darray(elements) }
     for j = 1, elements do
       a.indexes[j] = r.indexes[j]
       a.values[j] = r.values[j]
