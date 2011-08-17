@@ -194,16 +194,16 @@ for _, t in ipairs(tests) do
     local status, o, time = true
 
     if speed == "display" then
-      o = rsm.solve(M, S)
+      o, _, iterations = rsm.solve(M, S)
     elseif speed == "check" then
-      status, o = pcall(rsm.solve, M, S)
+      status, o, _, iterations = pcall(rsm.solve, M, S)
     else
       time = os.clock()
-      status, o = pcall(rsm.solve, M, S)
+      status, o, _, iterations = pcall(rsm.solve, M, S)
       time = os.clock() - time
     end
     if status then
-      io.stderr:write(("obtained %12g, abs difference: %12g, rel difference: %12g"):format(o, math.abs(t.answer - o), math.abs((t.answer - o)/t.answer)))
+      io.stderr:write(("obtained %12g, abs difference: %12g, rel difference: %12g, iterations: %d"):format(o, math.abs(t.answer - o), math.abs((t.answer - o)/t.answer), iterations))
       if time then
         io.stderr:write((", time: %8.4fs"):format(time))
       end

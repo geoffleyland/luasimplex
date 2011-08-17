@@ -340,7 +340,7 @@ function solve(M, S)
     objective = objective + I.x[i] * M.c[i]
   end
 
-  return objective, I.x
+  return objective, I.x, I.iterations
 end
 
 
