@@ -172,7 +172,10 @@ for _, t in ipairs(tests) do
   local status, M = pcall(mps.read, f)
   f:close()
 
-  if status then
+  if not status then
+    io.stderr:write("ERROR: ", M, "\n")
+  else
+
     if speed == "display" then
       mps.write(M)
     end
@@ -188,7 +191,7 @@ for _, t in ipairs(tests) do
       print("hoping to diagnose", S.diagnose)
     end
     
-    local status, o, time
+    local status, o, time = true
 
     if speed == "display" then
       o = rsm.solve(M, S)
@@ -208,8 +211,6 @@ for _, t in ipairs(tests) do
     else
       io.stderr:write("ERROR: ", o, "\n")
     end
-  else
-    io.stderr:write("ERROR: ", M, "\n")
   end
 end
 
