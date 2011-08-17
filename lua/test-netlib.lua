@@ -111,7 +111,7 @@ answers =
 -- Main ------------------------------------------------------------------------
 
 -- read args
-local choices, chosen, test_dir, speed, diagnose = 0, {}, "../netlib-test-data/"
+local choices, chosen, test_dir, speed, diagnose = 0, {}, "../../netlib-test-data/"
 local i = 1
 while i <= #arg do
   if arg[i] == "--fast" then
