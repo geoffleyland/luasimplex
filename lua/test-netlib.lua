@@ -166,8 +166,10 @@ end
 
 
 -- run tests
+io.stderr:write(("%-10s\t%10s\t%12s\t%10s\t%12s\t%12s\t%12s\t%12s\t%12s\t%8s\n"):format("Test", "Variables", "Constraints", "Nonzeros", "Expect", "Obtained", "Abs diff", "Rel diff", "Iterations", "Time (s)"))
+
 for _, t in ipairs(tests) do
-  io.stderr:write(("Trying %-11s "):format(t.name..":"))
+  io.stderr:write(("%-10s\t"):format(t.name))
   local f = io.open(test_dir..t.fn)
   local status, M = pcall(mps.read, f)
   f:close()
@@ -179,7 +181,7 @@ for _, t in ipairs(tests) do
     if speed == "display" then
       mps.write(M)
     end
-    io.stderr:write(("% 6d variables, % 6d constraints, % 6d nonzeros, expect %12g... "):format(M.nvars, M.nrows, M.nonzeroes, t.answer))
+    io.stderr:write(("% 10d\t% 12d\t% 10d\t%12g\t"):format(M.nvars, M.nrows, M.nonzeroes, t.answer))
     local S = {}
     if speed == "check" then
       S.monitor = monitor.check
@@ -201,9 +203,10 @@ for _, t in ipairs(tests) do
       time = os.clock() - time
     end
     if status then
-      io.stderr:write(("obtained %12g, abs difference: %12g, rel difference: %12g, iterations: %d"):format(o, math.abs(t.answer - o), math.abs((t.answer - o)/t.answer), iterations))
+      io.stderr:write(("% 12g\t% 12g\t% 12g\t% 12d\t")
+        :format(o, math.abs(t.answer - o), math.abs((t.answer - o)/t.answer), iterations))
       if time then
-        io.stderr:write((", time: %8.4fs"):format(time))
+        io.stderr:write(("%8.4f"):format(time))
       end
       io.stderr:write("\n")
     else
