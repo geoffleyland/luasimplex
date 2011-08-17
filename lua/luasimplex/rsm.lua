@@ -281,8 +281,7 @@ function solve(M, S)
       if I.phase == 1 then
         for i = 1, nrows do
           if I.basics[i] > nvars and math.abs(I.x[I.basics[i] ]) > TOLERANCE  then
-            if S.diagnose then S.diagnose(M, I, S, "infeasible") end
-            error("Infeasible")
+            luasimplex.error("Infeasible", M, I, S)
           end
         end
         I.costs = M.c
@@ -305,8 +304,7 @@ function solve(M, S)
       if monitor then monitor(M, I, S, "leaving_variable") end
 
       if I.phase == 2 and I.max_change >= math.huge / 2 then
-        if S.diagnose then S.diagnose(M, I, S, "unbounded") end
-        error("Unbounded")
+        luasimplex.error("Unbounded", M, I, S)
       end
 
       if (math.abs(I.max_change) > I.TOLERANCE) then

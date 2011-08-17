@@ -1,6 +1,7 @@
 local io, math, table = require("io"), require("math"), require("table")
 local error, ipairs, pairs, tonumber = error, ipairs, pairs, tonumber
 
+local luasimplex = require("luasimplex")
 local rsm = require("luasimplex.rsm")
 
 local monitor = {}
@@ -52,10 +53,10 @@ function check(M, I, S, what)
   if what == "iteration" then
     local variable_failures, constraint_failures = check_variable_bounds(M, I, S), check_constraints(M, I, S)
     if variable_failures then
-      error("Bound violation")
+      luasimplex.error("Bound violation", M, I, S)
     end
     if constraint_failures then
-      error("Constraint violation")
+      luasimplex.error("Constraint violation", M, I, S)
     end
   end
 end
@@ -171,14 +172,14 @@ local function display_iteration(M, I, S)
     for _, i in ipairs(variable_failures) do
       io.stderr:write("    ", display_variable(M, I, i), "\n")
     end
-    error("Bound violation")
+    luasimplex.error("Bound violation", M, I, S)
   end
   if constraint_failures then
     io.stderr:write("  Constraint violation\n")
     for _, i in ipairs(constraint_failures) do
       display_constraint(M, I, i)
     end
-    error("Constraint violation")
+    luasimplex.error("Constraint violation", M, I, S)
   end
 end
 
@@ -270,7 +271,7 @@ local display_actions =
 
 
 function display(M, I, S, what)
-  local f = display_actions[what]
+  local f = display_actions[what:lower()]
   if f then f(M, I, S) end
 end
 
@@ -344,12 +345,14 @@ end
 local diagnose_actions =
 {
   infeasible = diagnose_infeasibility,
+  unbounded = diagnose_infeasibility,
+  ["bound violation"] = diagnose_infeasibility,
+  ["constraint violation"] = diagnose_infeasibility,
 }
 
 
 function diagnose(M, I, S, what)
-  print("HELLO!!!!!!!!!!!!!!!!!", what, diagnose_actions[what])
-  local f = diagnose_actions[what]
+  local f = diagnose_actions[what:lower()]
   if f then f(M, I, S) end
 end
 

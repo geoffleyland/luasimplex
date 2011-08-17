@@ -186,11 +186,7 @@ for _, t in ipairs(tests) do
     elseif speed == "display" then
       S.monitor = monitor.display
     end
-    if diagnose == true then
-      S.diagnose = monitor.diagnose
-      print("hoping to diagnose", S.diagnose)
-    end
-    
+
     local status, o, time = true
 
     collectgarbage("collect")
@@ -211,7 +207,10 @@ for _, t in ipairs(tests) do
       end
       io.stderr:write("\n")
     else
-      io.stderr:write("ERROR: ", o, "\n")
+      if type(o) == "table" and diagnose then
+        monitor.diagnose(o.M, o.I, o.S, o.error)
+      end
+      io.stderr:write("ERROR: ", tostring(o), "\n")
     end
   end
 end
