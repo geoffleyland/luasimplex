@@ -7,19 +7,9 @@ local M =
   nvars = 4,
   -- number of constraints
   nrows = 2,
-  A =
-  {
-    {
-      elements = 3,
-      indexes = luasimplex.iarray(3, 1, 2, 3),
-      values = luasimplex.darray(3, 1, 2, 1),
-    },
-    {
-      elements = 3,
-      indexes = luasimplex.iarray(3, 1, 2, 4),
-      values = luasimplex.darray(3, 2, 1, 1),
-    }
-  },
+  indexes = luasimplex.iarray(6, 1, 2, 3, 1, 2, 4),
+  elements = luasimplex.darray(6, 1, 2, 1, 2, 1, 1),
+  row_starts = luasimplex.iarray(3, 1, 4, 7),
   c = luasimplex.darray(4, -1, -1, 0, 0),
   xl = luasimplex.darray(4, 0, 0, 0, 0),
   xu = luasimplex.darray(4, math.huge, math.huge, math.huge, math.huge),

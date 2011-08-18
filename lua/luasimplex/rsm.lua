@@ -38,6 +38,7 @@ end
 local function compute_reduced_cost(M, I)
   -- reduced cost = cost - pi' * A 
   local reduced_costs, status, TOL = I.reduced_costs, I.status, I.TOLERANCE
+  local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
 
   -- initialise with costs (phase 2) or zero (phase 1 and basic variables)
   for i = 1, M.nvars do
@@ -49,12 +50,10 @@ local function compute_reduced_cost(M, I)
   for i = 1, M.nrows do
     local p = I.pi[i]
     if math.abs(p) > TOL then
-      local a = M.A[i]
-      local indexes, values = a.indexes, a.values
-      for j = 1, a.elements do
+      for j = row_starts[i], row_starts[i+1]-1 do
         local k = indexes[j]
         if status[k] ~= 0 then
-          reduced_costs[k] = reduced_costs[k] - p * values[j]
+          reduced_costs[k] = reduced_costs[k] - p * elements[j]
         end        
       end
     end
@@ -88,6 +87,7 @@ end
 function compute_gradient(M, I, entering_index, gradient)
   -- gradient = Binverse * entering row of a
   local nrows, Bi = M.nrows, I.Binverse
+  local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
 
   if gradient then
     for i = 1, nrows do gradient[i] = 0 end
@@ -96,13 +96,11 @@ function compute_gradient(M, I, entering_index, gradient)
   end
 
   for i = 1, nrows do
-    local a = M.A[i]
-    local indexes = a.indexes
     local v
-    for j = 1, a.elements do
+    for j = row_starts[i], row_starts[i+1]-1 do
       local column = indexes[j]
       if column == entering_index then
-        v = a.values[j]
+        v = elements[j]
         break
       elseif column > entering_index then
         break
@@ -210,14 +208,15 @@ end
 
 local function initialise_artificial_variables(M, I)
   local nvars, nrows = M.nvars, M.nrows
+  local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
+
   I.basics = iarray(nrows)
   I.basic_costs = darray(nrows)
 
   for i = 1, nrows do
     local z = M.b[i]
-    local a = M.A[i]
-    for j = 1, a.elements do
-      z = z - a.values[j] * I.x[a.indexes[j]]
+    for j = row_starts[i], row_starts[i+1]-1 do
+      z = z - elements[j] * I.x[indexes[j]]
     end
     local k = nvars + i
     I.x[k] = z

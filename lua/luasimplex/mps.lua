@@ -189,7 +189,6 @@ function read(f)
     constraint_names = {},
     nvars = nvars,
     nrows = nrows,
-    A = {},
     b = luasimplex.darray(nrows),
     c = luasimplex.darray(nvars),
     xl = luasimplex.darray(nvars),
@@ -201,16 +200,26 @@ function read(f)
   for i, r in ipairs(model.rows) do
     M.constraint_names[i] = r.name
     M.b[i] = r.rhs
-    local elements = #r.indexes
-    local a = { name = r.name, elements = elements, indexes = luasimplex.iarray(elements), values = luasimplex.darray(elements) }
-    for j = 1, elements do
-      a.indexes[j] = r.indexes[j]
-      a.values[j] = r.values[j]
-      nonzeroes = nonzeroes + 1
+    nonzeroes = nonzeroes + #r.indexes
     end
-    M.A[i] = a
-  end
   M.nonzeroes = nonzeroes
+
+  local elements = luasimplex.darray(nonzeroes)
+  local indexes = luasimplex.iarray(nonzeroes)
+  local row_starts = luasimplex.iarray(nrows+1)
+  local element_index = 1
+  for i, r in ipairs(model.rows) do
+    row_starts[i] = element_index
+    for j = 1, #r.indexes do
+      indexes[element_index] = r.indexes[j]
+      elements[element_index] = r.values[j]
+      element_index = element_index + 1
+    end
+  end
+  row_starts[nrows+1] = nonzeroes+1
+  M.elements = elements
+  M.indexes = indexes
+  M.row_starts = row_starts
 
   -- Add variables to model
   for i, v in ipairs(model.variables) do
@@ -232,8 +241,8 @@ function write(M)
   io.stderr:write("\nRows:\n")
   for i = 1, M.nrows do
     io.stderr:write("  ", tostring(i), ": ", M.constraint_names[i], " ", tostring(M.b[i]), ": ")
-    for j = 1, M.A[i].elements do
-      io.stderr:write(M.variable_names[M.A[i].indexes[j] ], ":", tostring(M.A[i].values[j]), " ")
+    for j = M.row_starts[i], M.row_starts[i+1]-1 do
+      io.stderr:write(M.variable_names[M.indexes[j] ], ":", tostring(M.elements[j]), " ")
     end
     io.stderr:write("\n")
   end

@@ -34,12 +34,13 @@ end
 
 
 function check_constraints(M, I, S)
+  local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
+
   local failures = {}
   for i = 1, M.nrows do
-    local a = M.A[i]
     local c = I.x[M.nvars + i]
-    for j = 1, a.elements do
-      c = c + a.values[j] * I.x[a.indexes[j] ]
+    for j = row_starts[i], row_starts[i+1]-1 do
+      c = c + elements[j] * I.x[indexes[j] ]
     end
     if math.abs(c - M.b[i]) > S.TOLERANCE then
       failures[#failures+1] = i
@@ -100,19 +101,19 @@ end
 -- Display constraints ---------------------------------------------------------
 
 local function display_constraint(M, I, c)
-  local a = M.A[c]
+  local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
 
   local variables, value = {}, 0
 
   -- assemble a table centred strings describing the variables in the constraint
-  for j = 1, a.elements do
-    local i = a.indexes[j]
-    value = value + a.values[j] * I.x[i]
+  for j = row_starts[c], row_starts[c+1]-1 do
+    local i = indexes[j]
+    value = value + elements[j] * I.x[i]
 
     local v =
     {
       name = display_variable_name(M, I, i),
-      coeff = ("%g"):format(a.values[j]),
+      coeff = ("%g"):format(elements[j]),
       bounds = display_variable_bounds(M, I, i),
       rc = display_variable_reduced_cost(M, I, i),
     }
