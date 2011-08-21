@@ -1,6 +1,8 @@
 -- Utilities for the simplex method
 
 
+local luasimplex = {}
+
 -- RSM error -------------------------------------------------------------------
 
 local rsm_exception = {}
@@ -17,27 +19,24 @@ function rsm_exception:__tostring()
 end
 
 
-local function rsm_error(e, M, I, S)
+function luasimplex.error(e, M, I, S)
   error(rsm_exception:new(e, M, I, S), 2)
 end
 
 
 -- FFI-aware array construction ------------------------------------------------
 
-local darray, iarray
+local ok, ffi = pcall(require, "ffi")
+if not ok then ffi = nil end
 
-local function array_init()
-  if jit and jit.status and jit.status() then
-    local ok, ffi = pcall(require, "ffi")
-    if ok then
+function luasimplex.array_init(no_ffi)
+  if ffi and not no_ffi then
       local darrayi = ffi.typeof("double[?]")
       local iarrayi = ffi.typeof("int[?]")
-      darray = function(n, ...) if select('#', ...) == 1 then return darrayi(n+1, select(1, ...)) else return darrayi(n+1, 0, ...) end end
-      iarray = function(n, ...) if select('#', ...) == 1 then return iarrayi(n+1, select(1, ...)) else return iarrayi(n+1, 0, ...) end end
-      return
-    end
-  end
-  darray = function(n, ...)
+    luasimplex.darray = function(n, ...) if select('#', ...) == 1 then return darrayi(n+1, select(1, ...)) else return darrayi(n+1, 0, ...) end end
+    luasimplex.iarray = function(n, ...) if select('#', ...) == 1 then return iarrayi(n+1, select(1, ...)) else return iarrayi(n+1, 0, ...) end end
+  else
+    luasimplex.darray = function(n, ...)
     local a = {...}
     local l = select('#', ...)
     if l == 0 then
@@ -48,53 +47,54 @@ local function array_init()
     end
     return a
   end
-  iarray = darray
+    luasimplex.iarray = luasimplex.darray
+end
 end
 
-array_init()
+luasimplex.array_init()
 
 
 -- Allocating models and model instances ---------------------------------------
 
-local function new_model(nrows, nvars, nonzeroes)
+function luasimplex.new_model(nrows, nvars, nonzeroes)
   M = {}
 
   M.nvars = nvars
   M.nrows = nrows
   M.nonzeroes = nonzeroes
 
-  M.indexes = iarray(nonzeroes)
-  M.row_starts = iarray(nrows+1)
-  M.elements = darray(nonzeroes)
+  M.indexes = luasimplex.iarray(nonzeroes)
+  M.row_starts = luasimplex.iarray(nrows+1)
+  M.elements = luasimplex.darray(nonzeroes)
 
-  M.b = darray(nrows)
-  M.c = darray(nvars)
-  M.xl = darray(nvars)
-  M.xu = darray(nvars)
+  M.b = luasimplex.darray(nrows)
+  M.c = luasimplex.darray(nvars)
+  M.xl = luasimplex.darray(nvars)
+  M.xu = luasimplex.darray(nvars)
 
   return M
 end
 
 
-local function new_instance(nrows, nvars, use_c)
+function luasimplex.new_instance(nrows, nvars)
     I = {}
 
   local total_vars = nvars + nrows
 
-  I.status = iarray(total_vars)
-  I.basics = iarray(nrows)
-  I.basic_cycles = iarray(nvars, 0)
+  I.status = luasimplex.iarray(total_vars)
+  I.basics = luasimplex.iarray(nrows)
+  I.basic_cycles = luasimplex.iarray(nvars, 0)
 
-  I.costs = darray(nvars, 0)
-  I.x = darray(total_vars)
-  I.xu = darray(total_vars)
-  I.xl = darray(total_vars)
+  I.costs = luasimplex.darray(nvars, 0)
+  I.x = luasimplex.darray(total_vars)
+  I.xu = luasimplex.darray(total_vars)
+  I.xl = luasimplex.darray(total_vars)
 
-  I.basic_costs = darray(nrows)
-  I.pi = darray(nrows, 0)
-  I.reduced_costs = darray(nvars, 0)
-  I.gradient = darray(nrows, 0)
-  I.Binverse = darray(nrows * nrows)
+  I.basic_costs = luasimplex.darray(nrows)
+  I.pi = luasimplex.darray(nrows, 0)
+  I.reduced_costs = luasimplex.darray(nvars, 0)
+  I.gradient = luasimplex.darray(nrows, 0)
+  I.Binverse = luasimplex.darray(nrows * nrows)
 
   return I
 end
@@ -102,13 +102,7 @@ end
 
 --------------------------------------------------------------------------------
 
-return
-{
-  error=rsm_error,
-  iarray=iarray, darray=darray,
-  new_model = new_model,
-  new_instance = new_instance,
-}
+return luasimplex
 
 
 -- EOF -------------------------------------------------------------------------
