@@ -165,17 +165,17 @@ end
 local function update_Binverse(M, I)
   local nrows, li, Bi = M.nrows, I.leaving_index, I.Binverse
 
-  local lg = I.gradient[li]
+  local ilg = 1 / I.gradient[li]
   for i = 1, nrows do
     if i ~= li then
-      local gr = I.gradient[i] / lg
+      local gr = I.gradient[i] * ilg
       for j = 1, nrows do
         Bi[(i-1)*nrows + j] = Bi[(i-1)*nrows + j] - gr * Bi[(li-1)*nrows + j]
       end
     end
   end
   for j = 1, nrows do
-    Bi[(li-1)*nrows + j] = Bi[(li-1)*nrows + j] / lg
+    Bi[(li-1)*nrows + j] = Bi[(li-1)*nrows + j] * ilg
   end
 end
 
