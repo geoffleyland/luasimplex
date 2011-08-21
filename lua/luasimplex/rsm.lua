@@ -252,6 +252,9 @@ function solve(M, I, S)
   while true do
     I.iterations = I.iterations + 1
     if monitor then monitor(M, I, S, "iteration") end
+    if I.iterations > 10000 then
+      luasimplex.error("Iteration limit", M, I, S)
+    end
 
     compute_pi(M, I)
     compute_reduced_cost(M, I)
