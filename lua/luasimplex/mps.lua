@@ -1,8 +1,6 @@
 local io, math = require("io"), require("math")
-local ipairs, pairs = ipairs, pairs
-local tostring = tostring
-local print = print
-local tonumber = tonumber
+local ipairs, pairs, tonumber, tostring, type =
+      ipairs, pairs, tonumber, tostring, type
 
 local luasimplex = require("luasimplex")
 
@@ -18,7 +16,8 @@ local sections =
       model.name = l:match("%s*(%S+)")
     end,
   ROWS = function(l, model)
-      local type, name = l:match("%s*(%S+)%s+(%S+)")
+      local type, name = l:match("%s*(%S+)%s+(.*)")
+      name = name:gsub("%s+$", "")
       if type == "N" then
         model.objective_name = name
         model.objective = {}
@@ -30,7 +29,8 @@ local sections =
     end,
   COLUMNS = function(l, model)
       local name
-      name, l = l:match("%s*(%S+)%s*(.*)")
+      name, l = l:match("%s*(........)%s*(.*)")
+      name = name:gsub("%s+$", "")
       local v = model.variable_map[name]
       if not v then
         v = { name = name, index = #model.variables + 1, coeff = 0, lower = 0, upper = math.huge }
@@ -40,7 +40,8 @@ local sections =
 
       while l:len() > 0 do
         local row, value
-        row, value, l = l:match("%s*(%S+)%s+(%S+)%s*(.*)")
+        row, value, l = l:match("%s*(........)%s+(%S+)%s*(.*)")
+        row = row:gsub("%s+$", "")
         value = tonumber(value)
 
         if row == model.objective_name then
@@ -55,18 +56,18 @@ local sections =
       end
     end,
   RHS = function(l, model)
-      l = l:match("%s%s%s%s%S*%s*(.*)")
+      l = l:match("%s%s%s%s........%s+(.*)")
       while l:len() > 0 do
         local row, value
-        row, value, l = l:match("%s*(%S+)%s+(%S+)%s*(.*)")
+        row, value, l = l:match("%s*(........)%s+(%S+)%s*(.*)")
+        row = row:gsub("%s+$", "")
         if row ~= model.objective_name then
           model.row_map[row].rhs = tonumber(value)
         end
       end
     end,
   RANGES = function(l, model)
-      local name
-      name, l = l:match("%s*(%S+)%s*(.*)")
+      l = l:match("%s%s%s%s........%s+(.*)")
       while l:len() > 0 do
         local row, value
         row, value, l = l:match("%s*(%S+)%s+(%S+)%s*(.*)")
@@ -75,10 +76,11 @@ local sections =
     end,
   BOUNDS = function(l, model)
       local type
-      type, l = l:match("%s(%S%S)%s%S*%s*(.*)")
+      type, l = l:match("%s(%S%S)%s........%s*(.*)")
       while l:len() > 0 do
         local variable, value
-        variable, value, l = l:match("%s*(%S+)%s*(%S*)%s*(.*)")
+        variable, value, l = l:match("%s*(..?.?.?.?.?.?.?)%s*(%S*)%s*(.*)")
+        variable = variable:gsub("%s+$", "")
         if value and value:len() > 0 then
           value = tonumber(value)
         else
