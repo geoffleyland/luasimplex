@@ -3,6 +3,8 @@ local mps = require("luasimplex.mps")
 local rsm = require("luasimplex.rsm")
 local monitor = require("luasimplex.monitor")
 local lfs = require("lfs")
+local ok, ffi = pcall(require, "ffi")
+if not ok then ffi = nil end
 
 
 -- Answers to netlib problems --------------------------------------------------
@@ -115,6 +117,8 @@ answers =
 local choices, chosen, exclusions, excluded = 0, {}, 0, {}
 local test_dir, speed, diagnose = "../../netlib-test-data/"
 local no_ffi = false
+local use_c = false
+local use_c_structs = false
 
 local i = 1
 while i <= #arg do
@@ -136,7 +140,7 @@ while i <= #arg do
     i = i + 1
     test_dir = arg[i]
   elseif arg[i] == "--help" then
-    io.stderr:write("Usage: ", arg[0], "[--fast|--check|--display] [--diagnose] [--no-ffi] [--test-dir <location of netlib test data] [<test name>]\n")
+    io.stderr:write("Usage: ", arg[0], "[--fast|--check|--display] [--diagnose] [--no-ffi] [--c] [--c-structs] [--test-dir <location of netlib test data] [<test name>]\n")
   else
     if arg[i]:match("%-") then
       excluded[arg[i]:sub(2,-1):upper()] = true
@@ -166,6 +170,17 @@ if no_ffi then
   luasimplex.array_init(true)
 end
 
+if not luasimplex.crsm then
+  use_c = false
+  use_c_structs = false
+end
+
+if use_c then
+  use_c_structs = true
+  speed = "fast"
+  diagnose = false
+end
+
 io.stderr:write("Testing netlib: ")
 io.stderr:write(speed)
 if type(luasimplex.darray(1)) == "table" then
@@ -173,6 +188,8 @@ if type(luasimplex.darray(1)) == "table" then
 else
   io.stderr:write(", with ffi")
 end
+if use_c_structs then io.stderr:write(", C structs") end
+if use_c then io.stderr:write(", C rsm") end
 io.stderr:write("\n")
 
 -- read tests
@@ -206,7 +223,7 @@ total_time = 0
 for _, t in ipairs(tests) do
   io.stderr:write(("%-10s\t"):format(t.name))
   local f = io.open(test_dir..t.fn)
-  local status, M = pcall(mps.read, f)
+  local status, M = pcall(mps.read, f, use_c_structs, use_c)
   f:close()
 
   if not status then
@@ -228,12 +245,24 @@ for _, t in ipairs(tests) do
     local status, o, time = true
 
     local I = luasimplex.new_instance(M.nrows, M.nvars, use_c_structs)
-    rsm.initialise(M, I, S)
+    rsm.initialise(M, I, S, use_c)
 
     if speed == "display" then
       o, _, iterations = rsm.solve(M, I, S)
     elseif speed == "check" then
       status, o, _, iterations = pcall(rsm.solve, M, I, S)
+    elseif use_c then
+      time = os.clock()
+      result = ffi.string(luasimplex.crsm.rsm_solve(M, I))
+      if result == "optimal" then
+        status = true
+        o = I.objective
+        iterations = I.iterations
+      else
+        status = false
+        o = result
+      end
+      time = os.clock() - time
     else
       time = os.clock()
       status, o, _, iterations = pcall(rsm.solve, M, I, S)
@@ -261,6 +290,9 @@ for _, t in ipairs(tests) do
       io.stderr:write("ERROR: ", tostring(o), "\n")
     end
   end
+
+  if I then luasimplex.free_instance(I) end
+  if M then luasimplex.free_model(M) end
 end
 
 

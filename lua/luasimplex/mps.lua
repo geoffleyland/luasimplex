@@ -114,7 +114,10 @@ local sections =
 }
 
 
-function read(f)
+function read(f, c_structs, c_arrays)
+  c_structs = c_structs or false
+  local offset = c_arrays and -1 or 0
+
   -- read file
   local model =
   {
@@ -189,32 +192,38 @@ function read(f)
     nonzeroes = nonzeroes + #r.indexes
   end
 
-  local M = luasimplex.new_model(nrows, nvars, nonzeroes)
+  local M = luasimplex.new_model(nrows, nvars, nonzeroes, c_structs)
 
-  M.name = model.name
-  M.variable_names = {}
-  M.constraint_names = {}
+  if type(M) == "table" then
+    M.name = model.name
+    M.variable_names = {}
+    M.constraint_names = {}
+  end
 
   -- Add constraints to model
   local element_index = 1
   for i, r in ipairs(model.rows) do
+    if type(M) == "table" then
     M.constraint_names[i] = r.name
-    M.b[i] = r.rhs
-    M.row_starts[i] = element_index
+    end
+    M.b[i+offset] = r.rhs
+    M.row_starts[i+offset] = element_index+offset
     for j = 1, #r.indexes do
-      M.indexes[element_index] = r.indexes[j]
-      M.elements[element_index] = r.values[j]
+      M.indexes[element_index+offset] = r.indexes[j]+offset
+      M.elements[element_index+offset] = r.values[j]
       element_index = element_index + 1
     end
   end
-  M.row_starts[nrows+1] = nonzeroes+1
+  M.row_starts[nrows+1+offset] = nonzeroes+1+offset
 
   -- Add variables to model
   for i, v in ipairs(model.variables) do
+    if type(M) == "table" then
     M.variable_names[i] = v.name
-    M.c[i] = v.coeff
-    M.xl[i] = v.lower
-    M.xu[i] = v.upper
+    end
+    M.c[i+offset] = v.coeff
+    M.xl[i+offset] = v.lower
+    M.xu[i+offset] = v.upper
   end
 
   return M
@@ -222,15 +231,17 @@ end
 
 
 function write(M)
+  local variable_names = type(M) == "table" and M.variable_names
+  local constraint_names = type(M) == "table" and M.constraint_names
   io.stderr:write("Variables:\n")
   for i = 1, M.nvars do
-    io.stderr:write("  ", tostring(i), ": ", M.variable_names[i], " ", tostring(M.c[i]), " ", tostring(M.xl[i]), " ", tostring(M.xu[i]), "\n")
+    io.stderr:write("  ", tostring(i), ": ", variable_names and variable_names[i] or "", " ", tostring(M.c[i]), " ", tostring(M.xl[i]), " ", tostring(M.xu[i]), "\n")
   end
   io.stderr:write("\nRows:\n")
   for i = 1, M.nrows do
-    io.stderr:write("  ", tostring(i), ": ", M.constraint_names[i], " ", tostring(M.b[i]), ": ")
+    io.stderr:write("  ", tostring(i), ": ", constraint_names and constraint_names[i] or "", " ", tostring(M.b[i]), ": ")
     for j = M.row_starts[i], M.row_starts[i+1]-1 do
-      io.stderr:write(M.variable_names[M.indexes[j] ], ":", tostring(M.elements[j]), " ")
+      io.stderr:write(variable_names and variable_names[M.indexes[j] ] or tostring(M.indexes[j]), ":", tostring(M.elements[j]), " ")
     end
     io.stderr:write("\n")
   end

@@ -1,5 +1,5 @@
 local math = require("math")
-local error, select = error, select
+local error, type = error, type
 
 local luasimplex = require("luasimplex")
 local iarray, darray = luasimplex.iarray, luasimplex.darray
@@ -182,8 +182,9 @@ end
 
 -- Initialisation --------------------------------------------------------------
 
-local function initialise_real_variables(M, I)
-  for i = 1, M.nvars do
+local function initialise_real_variables(M, I, offset)
+  for ii = 1, M.nvars do
+    local i = ii + offset
     I.xu[i], I.xl[i] = M.xu[i], M.xl[i]
     if M.xl[i] == -math.huge and M.xu[i] == math.huge then
       I.x[i] = 0
@@ -199,11 +200,12 @@ local function initialise_real_variables(M, I)
 end
 
 
-local function initialise_artificial_variables(M, I)
+local function initialise_artificial_variables(M, I, offset)
   local nvars, nrows = M.nvars, M.nrows
   local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
 
-  for i = 1, nrows do
+  for ii = 1, nrows do
+    local i = ii + offset
     local z = M.b[i]
     for j = row_starts[i], row_starts[i+1]-1 do
       z = z - elements[j] * I.x[indexes[j]]
@@ -217,23 +219,25 @@ local function initialise_artificial_variables(M, I)
     else
       I.basic_costs[i], I.xl[k], I.xu[k] = 1, 0, math.huge
     end
-    if M.variable_names and M.constraint_names then
+    if type(M) == "table" and M.variable_names and M.constraint_names then
       M.variable_names[k] = M.constraint_names[i].."_ARTIFICIAL"
     end
   end
 end
 
 
-function initialise(M, I, S)
+function initialise(M, I, S, c_arrays)
+  offset = c_arrays and -1 or 0
+
   local nrows = M.nrows
 
   if not S.TOLERANCE then S.TOLERANCE = TOLERANCE end
   I.TOLERANCE = S.TOLERANCE
 
-  initialise_real_variables(M, I)
-  initialise_artificial_variables(M, I)
+  initialise_real_variables(M, I, offset)
+  initialise_artificial_variables(M, I, offset)
 
-  for i = 1, nrows do I.Binverse[(i-1)*nrows + i] = 1 end
+  for i = 1, nrows do I.Binverse[(i-1)*nrows + i + offset] = 1 end
 
   return I
 end

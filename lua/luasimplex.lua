@@ -56,47 +56,85 @@ luasimplex.array_init()
 
 -- Allocating models and model instances ---------------------------------------
 
-function luasimplex.new_model(nrows, nvars, nonzeroes)
-  M = {}
+if ffi then
+  local header = io.open("../c/rsm.h", "r")
+  if header then
+    if pcall(ffi.cdef, header:read("*a")) then
+      header:close()
+      local ok
+      ok, luasimplex.crsm = pcall(ffi.load, "../rsm.dylib")
+      if not ok then luasimplex.crsm = nil end
+    end
+  end
+end
 
-  M.nvars = nvars
-  M.nrows = nrows
-  M.nonzeroes = nonzeroes
+if luasimplex.crsm then print("C RSM is available") end
 
-  M.indexes = luasimplex.iarray(nonzeroes)
-  M.row_starts = luasimplex.iarray(nrows+1)
-  M.elements = luasimplex.darray(nonzeroes)
+function luasimplex.new_model(nrows, nvars, nonzeroes, use_c)
+  local M
+  if use_c and luasimplex.crsm then
+    M = ffi.new("model")
+    luasimplex.crsm.new_model(M, nrows, nvars, nonzeroes)
+  else
+    M = {}
 
-  M.b = luasimplex.darray(nrows)
-  M.c = luasimplex.darray(nvars)
-  M.xl = luasimplex.darray(nvars)
-  M.xu = luasimplex.darray(nvars)
+    M.nvars = nvars
+    M.nrows = nrows
+    M.nonzeroes = nonzeroes
 
+    M.indexes = luasimplex.iarray(nonzeroes)
+    M.row_starts = luasimplex.iarray(nrows+1)
+    M.elements = luasimplex.darray(nonzeroes)
+
+    M.b = luasimplex.darray(nrows)
+    M.c = luasimplex.darray(nvars)
+    M.xl = luasimplex.darray(nvars)
+    M.xu = luasimplex.darray(nvars)
+  end
   return M
 end
 
 
-function luasimplex.new_instance(nrows, nvars)
+function luasimplex.free_model(M)
+  if type(M) ~= "table" then
+    luasimplex.crsm.free_model(M)
+  end
+end
+
+
+function luasimplex.new_instance(nrows, nvars, use_c)
+  local I
+  if use_c and luasimplex.crsm then
+    I = ffi.new("instance")
+    luasimplex.crsm.new_instance(I, nrows, nvars)
+  else
     I = {}
 
-  local total_vars = nvars + nrows
+    local total_vars = nvars + nrows
 
-  I.status = luasimplex.iarray(total_vars)
-  I.basics = luasimplex.iarray(nrows)
-  I.basic_cycles = luasimplex.iarray(nvars, 0)
+    I.status = luasimplex.iarray(total_vars)
+    I.basics = luasimplex.iarray(nrows)
+    I.basic_cycles = luasimplex.iarray(nvars, 0)
 
-  I.costs = luasimplex.darray(nvars, 0)
-  I.x = luasimplex.darray(total_vars)
-  I.xu = luasimplex.darray(total_vars)
-  I.xl = luasimplex.darray(total_vars)
+    I.costs = luasimplex.darray(nvars, 0)
+    I.x = luasimplex.darray(total_vars)
+    I.xu = luasimplex.darray(total_vars)
+    I.xl = luasimplex.darray(total_vars)
 
-  I.basic_costs = luasimplex.darray(nrows)
-  I.pi = luasimplex.darray(nrows, 0)
-  I.reduced_costs = luasimplex.darray(nvars, 0)
-  I.gradient = luasimplex.darray(nrows, 0)
-  I.Binverse = luasimplex.darray(nrows * nrows)
-
+    I.basic_costs = luasimplex.darray(nrows)
+    I.pi = luasimplex.darray(nrows, 0)
+    I.reduced_costs = luasimplex.darray(nvars, 0)
+    I.gradient = luasimplex.darray(nrows, 0)
+    I.Binverse = luasimplex.darray(nrows * nrows)
+  end
   return I
+end
+
+
+function luasimplex.free_instance(I)
+  if type(I) ~= "table" then
+    luasimplex.crsm.free_instance(I)
+  end
 end
 
 
