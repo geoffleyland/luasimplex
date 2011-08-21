@@ -149,7 +149,7 @@ function find_leaving_variable(M, I, entering_index, gradient)
     end
   end
   
-  return leaving_index, (leaving_index and max_change * s) or 0, to_lower
+  return leaving_index, max_change * s, to_lower
 end
 
 
