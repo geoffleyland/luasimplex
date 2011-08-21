@@ -85,7 +85,7 @@ end
 
 
 function compute_gradient(M, I, entering_index, gradient)
-  -- gradient = Binverse * entering row of a
+  -- gradient = Binverse * entering column of A
   local nrows, Bi = M.nrows, I.Binverse
   local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
 
