@@ -1,3 +1,4 @@
+local luasimplex = require("luasimplex")
 local mps = require("luasimplex.mps")
 local rsm = require("luasimplex.rsm")
 local monitor = require("luasimplex.monitor")
@@ -176,6 +177,7 @@ for _, t in ipairs(tests) do
 
   if not status then
     io.stderr:write("ERROR: ", M, "\n")
+    M = nil
   else
 
     if speed == "display" then
@@ -191,15 +193,16 @@ for _, t in ipairs(tests) do
 
     local status, o, time = true
 
-    collectgarbage("collect")
+    local I = luasimplex.new_instance(M.nrows, M.nvars, use_c_structs)
+    rsm.initialise(M, I, S)
 
     if speed == "display" then
-      o, _, iterations = rsm.solve(M, S)
+      o, _, iterations = rsm.solve(M, I, S)
     elseif speed == "check" then
-      status, o, _, iterations = pcall(rsm.solve, M, S)
+      status, o, _, iterations = pcall(rsm.solve, M, I, S)
     else
       time = os.clock()
-      status, o, _, iterations = pcall(rsm.solve, M, S)
+      status, o, _, iterations = pcall(rsm.solve, M, I, S)
       time = os.clock() - time
     end
     if status then

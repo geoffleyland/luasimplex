@@ -182,46 +182,32 @@ function read(f)
     end
   end
 
-
   local nvars, nrows = #model.variables, #model.rows
-  local M =
-  {
-    name = model.name,
-    variable_names = {},
-    constraint_names = {},
-    nvars = nvars,
-    nrows = nrows,
-    b = luasimplex.darray(nrows),
-    c = luasimplex.darray(nvars),
-    xl = luasimplex.darray(nvars),
-    xu = luasimplex.darray(nvars),
-  }
+
+  local nonzeroes = 0
+  for i, r in ipairs(model.rows) do
+    nonzeroes = nonzeroes + #r.indexes
+  end
+
+  local M = luasimplex.new_model(nrows, nvars, nonzeroes)
+
+  M.name = model.name
+  M.variable_names = {}
+  M.constraint_names = {}
 
   -- Add constraints to model
-  local nonzeroes = 0
+  local element_index = 1
   for i, r in ipairs(model.rows) do
     M.constraint_names[i] = r.name
     M.b[i] = r.rhs
-    nonzeroes = nonzeroes + #r.indexes
-    end
-  M.nonzeroes = nonzeroes
-
-  local elements = luasimplex.darray(nonzeroes)
-  local indexes = luasimplex.iarray(nonzeroes)
-  local row_starts = luasimplex.iarray(nrows+1)
-  local element_index = 1
-  for i, r in ipairs(model.rows) do
-    row_starts[i] = element_index
+    M.row_starts[i] = element_index
     for j = 1, #r.indexes do
-      indexes[element_index] = r.indexes[j]
-      elements[element_index] = r.values[j]
+      M.indexes[element_index] = r.indexes[j]
+      M.elements[element_index] = r.values[j]
       element_index = element_index + 1
     end
   end
-  row_starts[nrows+1] = nonzeroes+1
-  M.elements = elements
-  M.indexes = indexes
-  M.row_starts = row_starts
+  M.row_starts[nrows+1] = nonzeroes+1
 
   -- Add variables to model
   for i, v in ipairs(model.variables) do

@@ -54,9 +54,61 @@ end
 array_init()
 
 
+-- Allocating models and model instances ---------------------------------------
+
+local function new_model(nrows, nvars, nonzeroes)
+  M = {}
+
+  M.nvars = nvars
+  M.nrows = nrows
+  M.nonzeroes = nonzeroes
+
+  M.indexes = iarray(nonzeroes)
+  M.row_starts = iarray(nrows+1)
+  M.elements = darray(nonzeroes)
+
+  M.b = darray(nrows)
+  M.c = darray(nvars)
+  M.xl = darray(nvars)
+  M.xu = darray(nvars)
+
+  return M
+end
+
+
+local function new_instance(nrows, nvars, use_c)
+    I = {}
+
+  local total_vars = nvars + nrows
+
+  I.status = iarray(total_vars)
+  I.basics = iarray(nrows)
+  I.basic_cycles = iarray(nvars, 0)
+
+  I.costs = darray(nvars, 0)
+  I.x = darray(total_vars)
+  I.xu = darray(total_vars)
+  I.xl = darray(total_vars)
+
+  I.basic_costs = darray(nrows)
+  I.pi = darray(nrows, 0)
+  I.reduced_costs = darray(nvars, 0)
+  I.gradient = darray(nrows, 0)
+  I.Binverse = darray(nrows * nrows)
+
+  return I
+end
+
+
 --------------------------------------------------------------------------------
 
-return { error=rsm_error, iarray=iarray, darray=darray }
+return
+{
+  error=rsm_error,
+  iarray=iarray, darray=darray,
+  new_model = new_model,
+  new_instance = new_instance,
+}
 
 
 -- EOF -------------------------------------------------------------------------

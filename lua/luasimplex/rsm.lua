@@ -183,14 +183,7 @@ end
 -- Initialisation --------------------------------------------------------------
 
 local function initialise_real_variables(M, I)
-  local nvars, nrows, tvars = M.nvars, M.nrows, M.nvars + M.nrows
-  I.x = darray(tvars)
-  I.xu = darray(tvars)
-  I.xl = darray(tvars)
-  I.status = darray(tvars)
-  I.basic_cycles = iarray(nvars, 0)
-
-  for i = 1, nvars do
+  for i = 1, M.nvars do
     I.xu[i], I.xl[i] = M.xu[i], M.xl[i]
     if M.xl[i] == -math.huge and M.xu[i] == math.huge then
       I.x[i] = 0
@@ -209,9 +202,6 @@ end
 local function initialise_artificial_variables(M, I)
   local nvars, nrows = M.nvars, M.nrows
   local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
-
-  I.basics = iarray(nrows)
-  I.basic_costs = darray(nrows)
 
   for i = 1, nrows do
     local z = M.b[i]
@@ -234,23 +224,16 @@ local function initialise_artificial_variables(M, I)
 end
 
 
-function initialise(M, S)
-  local nrows, nvars = M.nrows, M.nvars
-  local I = {}
-  
+function initialise(M, I, S)
+  local nrows = M.nrows
+
   if not S.TOLERANCE then S.TOLERANCE = TOLERANCE end
   I.TOLERANCE = S.TOLERANCE
 
   initialise_real_variables(M, I)
   initialise_artificial_variables(M, I)
 
-  I.Binverse = darray(nrows^2)
   for i = 1, nrows do I.Binverse[(i-1)*nrows + i] = 1 end
-
-  I.pi = darray(nrows, 0)
-  I.costs = darray(nvars, 0)
-  I.reduced_costs = darray(nvars, 0)
-  I.gradient = darray(nrows, 0)
 
   return I
 end
@@ -258,8 +241,7 @@ end
 
 -- Solve -----------------------------------------------------------------------
 
-function solve(M, S)
-  local I = initialise(M, S)
+function solve(M, I, S)
   local TOLERANCE = I.TOLERANCE
   
   local nvars, nrows = M.nvars, M.nrows
