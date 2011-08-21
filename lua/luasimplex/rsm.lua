@@ -306,7 +306,7 @@ function solve(M, S)
         luasimplex.error("Unbounded", M, I, S)
       end
 
-      if (math.abs(I.max_change) > I.TOLERANCE) then
+      if math.abs(I.max_change) > TOLERANCE then
         for i = 1, nvars do
           I.basic_cycles[i] = 0
         end
