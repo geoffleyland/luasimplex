@@ -19,3 +19,16 @@ data.
 
 Speed.  Numerical stability.
 
+5. How?
+
+Get luasimplex from github.
+It looks like the easiest place to get the netlib test problems is here: http://www.numerical.rl.ac.uk/cute/netlib.html
+
+Then:
+
+    make
+    cd lua
+    lua[jit] test-netlib.lua --test-dir <where you put the netlib data> --fast
+
+Options to try are `--no-ffi`, `--c-structs` and `--c` (which uses the c version).
+
