@@ -65,7 +65,7 @@ local function find_entering_variable(M, I)
   local TOL = -I.TOLERANCE
   -- Find the variable with the "lowest" reduced cost, keeping in mind that it might be at its upper bound
 
-  local cycles, minrc, entering_index = math.huge
+  local cycles, minrc, entering_index = math.huge, 0, -1
   for i = 1, M.nvars do
     local s, rc = I.status[i]
     if s == NONBASIC_FREE then
@@ -124,7 +124,7 @@ function find_leaving_variable(M, I, entering_index, gradient)
     s = I.reduced_costs[entering_index] > 0 and -1 or 1
   end
 
-  local max_change, leaving_index, to_lower = I.xu[entering_index] - I.xl[entering_index]
+  local max_change, leaving_index, to_lower = I.xu[entering_index] - I.xl[entering_index], -1
 
   for i = 1, M.nrows do
     local g = gradient[i] * -s
@@ -276,7 +276,7 @@ function solve(M, S)
     I.entering_index = find_entering_variable(M, I)
     if monitor then monitor(M, I, S, "entering_variable") end
 
-    if not I.entering_index then
+    if I.entering_index == -1 then
       if I.phase == 1 then
         for i = 1, nrows do
           if I.basics[i] > nvars and math.abs(I.x[I.basics[i] ]) > TOLERANCE  then
@@ -315,7 +315,7 @@ function solve(M, S)
       update_variables(M, I)
       I.x[I.entering_index] = I.x[I.entering_index] + I.max_change
 
-      if I.leaving_index then
+      if I.leaving_index ~= -1 then
         update_Binverse(M, I)
 
         local rli = I.basics[I.leaving_index]
