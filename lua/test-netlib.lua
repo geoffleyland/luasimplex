@@ -112,7 +112,10 @@ answers =
 -- Main ------------------------------------------------------------------------
 
 -- read args
-local choices, chosen, test_dir, speed, diagnose = 0, {}, "../../netlib-test-data/"
+local choices, chosen, exclusions, excluded = 0, {}, 0, {}
+local test_dir, speed, diagnose = "../../netlib-test-data/"
+local no_ffi = false
+
 local i = 1
 while i <= #arg do
   if arg[i] == "--fast" then
@@ -123,14 +126,25 @@ while i <= #arg do
     speed = "display"
   elseif arg[i] == "--diagnose" then
     diagnose = true
+  elseif arg[i] == "--no-ffi" then
+    no_ffi = true
+  elseif arg[i] == "--c" then
+    use_c = true
+  elseif arg[i] == "--c-structs" then
+    use_c_structs = true
   elseif arg[i] == "--test-dir" then
     i = i + 1
     test_dir = arg[i]
   elseif arg[i] == "--help" then
-    io.stderr:write("Usage: ", arg[0], "[--fast|--check|--display] [--diagnose] [--test-dir <location of netlib test data] [<test name>]\n")
+    io.stderr:write("Usage: ", arg[0], "[--fast|--check|--display] [--diagnose] [--no-ffi] [--test-dir <location of netlib test data] [<test name>]\n")
+  else
+    if arg[i]:match("%-") then
+      excluded[arg[i]:sub(2,-1):upper()] = true
+      exclusions = exclusions + 1
   else
     chosen[arg[i]:upper()] = true
     choices = choices + 1
+  end
   end
   i = i + 1
 end
@@ -146,6 +160,20 @@ else
   if not speed then speed = "check" end
 end
 
+if no_ffi then
+  use_c = false
+  use_c_structs = false
+  luasimplex.array_init(true)
+end
+
+io.stderr:write("Testing netlib: ")
+io.stderr:write(speed)
+if type(luasimplex.darray(1)) == "table" then
+  io.stderr:write(", without ffi")
+else
+  io.stderr:write(", with ffi")
+end
+io.stderr:write("\n")
 
 -- read tests
 local tests = {}
@@ -155,7 +183,7 @@ for fn in lfs.dir(test_dir) do
   if name then
     name = name:upper()
     local answer = answers[name]
-    if answer and (choices == 0 or chosen[name]) then
+    if answer and (choices == 0 or chosen[name]) and not excluded[name] then
       tests[#tests+1] = { fn = fn, name = name, answer = answer, size = lfs.attributes(test_dir..fn, "size") }
     end
   end
