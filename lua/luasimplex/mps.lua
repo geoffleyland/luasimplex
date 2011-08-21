@@ -153,7 +153,7 @@ function read(f)
       end
     elseif r.type == "G" then
       if r.range then
-        upper = math.abs(range)
+        upper = math.abs(r.range)
         rhs = rhs - upper
         coeff = 1
       else
