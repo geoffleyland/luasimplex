@@ -195,7 +195,13 @@ end
 
 
 -- run tests
-io.stderr:write(("%-10s\t%10s\t%12s\t%10s\t%12s\t%12s\t%12s\t%12s\t%12s\t%8s\n"):format("Test", "Variables", "Constraints", "Nonzeros", "Expect", "Obtained", "Abs diff", "Rel diff", "Iterations", "Time (s)"))
+io.stderr:write(("%-10s\t%10s\t%12s\t%10s\t%12s\t%12s\t%12s\t%12s\t%12s"):format("Test", "Variables", "Constraints", "Nonzeros", "Expect", "Obtained", "Abs diff", "Rel diff", "Iterations"))
+if speed == "fast" then
+  io.stderr:write(("\t%8s\t%14s"):format("Time (s)", "Total time (s)"))
+end
+io.stderr:write("\n")
+
+total_time = 0
 
 for _, t in ipairs(tests) do
   io.stderr:write(("%-10s\t"):format(t.name))
@@ -234,10 +240,18 @@ for _, t in ipairs(tests) do
       time = os.clock() - time
     end
     if status then
-      io.stderr:write(("% 12g\t% 12g\t% 12g\t% 12d\t")
-        :format(o, math.abs(t.answer - o), math.abs((t.answer - o)/t.answer), iterations))
+      local absolute_error = math.abs(t.answer - o)
+      local relative_error = math.abs((t.answer - o) / t.answer)
+      io.stderr:write(("% 12g\t% 12g\t% 12g\t% 12d")
+        :format(o, absolute_error, relative_error, iterations))
       if time then
-        io.stderr:write(("%8.4f"):format(time))
+        io.stderr:write(("\t%8.4f"):format(time))
+        if relative_error < 1e-7 then
+          total_time = total_time + time
+          io.stderr:write(("\t% 14.4f"):format(total_time))
+        else
+          io.stderr:write("\t        -")
+        end
       end
       io.stderr:write("\n")
     else
