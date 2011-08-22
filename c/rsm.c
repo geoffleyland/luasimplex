@@ -267,18 +267,27 @@ static int find_leaving_variable(const model *M, instance *I, double *max_change
     if (fabs(g) > TOL)
     {
       int j = basics[i];
-      double bound = nan(0);
+      int found_bound = 0;
+      double bound = 0;
 
       if (g > 0.0)
       {
-        if (xu[j] < DBL_MAX) bound = xu[j];
+        if (xu[j] < DBL_MAX)
+        {
+          bound = xu[j];
+          found_bound = 1;
+        }
       }
       else
       {
-        if (xl[j] > -DBL_MAX) bound = xl[j];
+        if (xl[j] > -DBL_MAX)
+        {
+          bound = xl[j];
+          found_bound = 1;
+        }
       }
 
-      if (!isnan(bound))
+      if (found_bound)
       {
         double z = (bound - x[j]) / g;
         /* we prefer to get rid of artificials when we can */
