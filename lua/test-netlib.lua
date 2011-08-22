@@ -155,13 +155,13 @@ end
 
 if choices > 0 then
   if choices > 1 then
-    if not speed then speed = "check" end
+    if not speed then speed = "fast" end
   else
     if not speed then speed = "display" end
   end
   if diagnose == nil then diagnose = true end
 else
-  if not speed then speed = "check" end
+  if not speed then speed = "fast" end
 end
 
 if no_ffi then
