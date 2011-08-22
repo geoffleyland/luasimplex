@@ -1,5 +1,6 @@
 CC=gcc
-CFLAGS=-O3 -fPIC -ftree-vectorize
+CFLAGS=-O2 -fPIC
+# -O3 and -ftree-vectorize don't seem to make any difference
 
 # Guess a platform
 UNAME=$(shell uname -s)
