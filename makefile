@@ -6,14 +6,16 @@ CFLAGS=-O2 -fPIC
 UNAME=$(shell uname -s)
 ifneq (,$(findstring Darwin,$(UNAME)))
   # OS X
+  SO_PREFIX=lib
   SO_SUFFIX=dylib
   SHARED=-bundle -undefined dynamic_lookup
 else
   # Linux
+  SO_PREFIX=lib
   SO_SUFFIX=so
   SHARED=-shared
 endif
 
-rsm.$(SO_SUFFIX): c/rsm.c c/rsm.h
+lua/$(SO_PREFIX)rsm.$(SO_SUFFIX): c/rsm.c c/rsm.h
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
 

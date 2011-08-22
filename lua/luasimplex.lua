@@ -62,7 +62,7 @@ if ffi then
     if pcall(ffi.cdef, header:read("*a")) then
       header:close()
       local ok
-      ok, luasimplex.crsm = pcall(ffi.load, "../rsm.dylib")
+      ok, luasimplex.crsm = pcall(ffi.load, "rsm")
       if not ok then luasimplex.crsm = nil end
     end
   end
