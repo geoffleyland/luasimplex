@@ -38,7 +38,7 @@ local sections =
         model.variables[v.index] = v
       end
 
-      while l:len() > 0 do
+      while #l > 0 do
         local row, value
         row, value, l = l:match("%s*(........)%s+(%S+)%s*(.*)")
         row = row:gsub("%s+$", "")
@@ -57,7 +57,7 @@ local sections =
     end,
   RHS = function(l, model)
       l = l:match("%s%s%s%s........%s+(.*)")
-      while l:len() > 0 do
+      while #l > 0 do
         local row, value
         row, value, l = l:match("%s*(........)%s+(%S+)%s*(.*)")
         row = row:gsub("%s+$", "")
@@ -68,7 +68,7 @@ local sections =
     end,
   RANGES = function(l, model)
       l = l:match("%s%s%s%s........%s+(.*)")
-      while l:len() > 0 do
+      while #l > 0 do
         local row, value
         row, value, l = l:match("%s*(%S+)%s+(%S+)%s*(.*)")
         model.row_map[row].range = tonumber(value)
@@ -77,11 +77,11 @@ local sections =
   BOUNDS = function(l, model)
       local type
       type, l = l:match("%s(%S%S)%s........%s*(.*)")
-      while l:len() > 0 do
+      while #l > 0 do
         local variable, value
         variable, value, l = l:match("%s*(..?.?.?.?.?.?.?)%s*(%S*)%s*(.*)")
         variable = variable:gsub("%s+$", "")
-        if value and value:len() > 0 then
+        if value and #value > 0 then
           value = tonumber(value)
         else
           value = nil
@@ -137,7 +137,7 @@ function read(f, c_structs, c_arrays)
         l = remainder
       end
     end
-    if l:len() > 0 then
+    if #l > 0 then
       reader(l, model)
     end
   end

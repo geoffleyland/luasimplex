@@ -118,9 +118,9 @@ local function display_constraint(M, I, c)
       rc = display_variable_reduced_cost(M, I, i),
     }
 
-    local w = math.max(v.name:len(), v.coeff:len(), v.bounds:len(), v.rc:len())
+    local w = math.max(#v.name, #v.coeff, #v.bounds, #v.rc)
     local function centre(s)
-      return (" "):rep(math.floor((w-s:len())/2))..s..(" "):rep(math.floor((w-s:len())/2+.5))
+      return (" "):rep(math.floor((w-#s)/2))..s..(" "):rep(math.floor((w-#s)/2+.5))
     end
     for k, s in pairs(v) do v[k] = centre(s) end
 
@@ -301,7 +301,7 @@ local function diagnose_infeasibility(M, I, S)
   while true do
     io.stderr:write("What now?\n * 'I' to display infeasible constraints\n * variable number or name to display constraints involving that variable\n * blank line to finish\n> ")
     local a = io.read("*l")
-    if not a or a:len() == 0 then break end
+    if not a or #a == 0 then break end
     if a:lower() == "i" then
       display_infeasible()
     else
