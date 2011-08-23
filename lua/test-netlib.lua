@@ -196,8 +196,7 @@ io.stderr:write("\n")
 local tests = {}
 
 for fn in lfs.dir(test_dir) do
-  fn = fn:upper()
-  local name = fn:match("(.+)%.[TXSIF]+$")
+  local name = fn:upper():match("(.+)%.[TXSIF]+$")
   if name then
     local answer = answers[name]
     if answer and (choices == 0 or chosen[name]) and not excluded[name] then
