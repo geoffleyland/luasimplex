@@ -249,10 +249,16 @@ local function display_leaving_variable(M, I, S)
         local g = rsm.compute_gradient(M, I, v.index)
         local leaving_index, max_change = rsm.find_leaving_variable(M, I, v.index, g)
         if max_change and math.abs(max_change) > I.TOLERANCE then
-          io.stderr:write(
-            ("    After %d tries found ev %s: rc = %g, lv %s: g = %g, ev step = %g\n"):
-            format(i, display_variable(M, I, v.index), I.reduced_costs[v.index],
-                   display_variable(M, I, I.basics[leaving_index]), g[leaving_index], max_change))
+          if leaving_index < 0 then
+            io.stderr:write(
+              ("    After %d tries found ev %s: rc = %g, lv = ev, ev step = %g\n"):
+              format(i, display_variable(M, I, v.index), I.reduced_costs[v.index], max_change))
+          else
+            io.stderr:write(
+              ("    After %d tries found ev %s: rc = %g, lv %s: g = %g, ev step = %g\n"):
+              format(i, display_variable(M, I, v.index), I.reduced_costs[v.index],
+                     display_variable(M, I, I.basics[leaving_index]), g[leaving_index], max_change))
+          end
           break
         end
       end
