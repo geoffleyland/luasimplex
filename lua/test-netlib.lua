@@ -196,9 +196,9 @@ io.stderr:write("\n")
 local tests = {}
 
 for fn in lfs.dir(test_dir) do
-  local name = fn:match("(.+).txt")
+  fn = fn:upper()
+  local name = fn:match("(.+)%.[TXSIF]+$")
   if name then
-    name = name:upper()
     local answer = answers[name]
     if answer and (choices == 0 or chosen[name]) and not excluded[name] then
       tests[#tests+1] = { fn = fn, name = name, answer = answer, size = lfs.attributes(test_dir..fn, "size") }

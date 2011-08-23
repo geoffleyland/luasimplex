@@ -1,6 +1,6 @@
 local io, math = require("io"), require("math")
-local ipairs, pairs, tonumber, tostring, type =
-      ipairs, pairs, tonumber, tostring, type
+local error, ipairs, pairs, tonumber, tostring, type =
+      error, ipairs, pairs, tonumber, tostring, type
 
 local luasimplex = require("luasimplex")
 
@@ -14,6 +14,9 @@ local sections =
 {
   NAME = function(l, model)
       model.name = l:match("%s*(%S+)")
+    end,
+  OBJECT = function(l, model)
+    -- I can't find any documentation for OBJECT lines, so I'll ignore them.
     end,
   ROWS = function(l, model)
       local type, name = l:match("%s*(%S+)%s+(.*)")
@@ -88,6 +91,9 @@ local sections =
         end
         
         local v = model.variable_map[variable]
+        if not v then
+          error("Unknown variable '"..variable.."'")
+        end
         if type == "LO" then
           v.lower = value
         elseif type == "UP" then
@@ -128,17 +134,22 @@ function read(f, c_structs, c_arrays)
   }
   local reader
   for l in f:lines() do
-    local r, remainder = l:match("^(%S+)%s*(.*)")
-    if r then
-      if r == "ENDATA" then
-        break
-      else
-        reader = sections[r]
-        l = remainder
+    if not l:match("^%*") then
+      local r, remainder = l:match("^(%S+)%s*(.*)")
+      if r then
+        if r == "ENDATA" then
+          break
+        else
+          reader = sections[r]
+          if not reader then
+            error("Unkown section '"..r.."'")
+          end
+          l = remainder
+        end
       end
-    end
-    if #l > 0 then
-      reader(l, model)
+      if #l > 0 then
+        reader(l, model)
+      end
     end
   end
 
