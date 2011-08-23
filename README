@@ -24,11 +24,14 @@ Speed.  Numerical stability.
 Get luasimplex from github.
 It looks like the easiest place to get the netlib test problems is here: http://www.numerical.rl.ac.uk/cute/netlib.html
 
-Then:
-
+Short version:
+    git clone git://github.com/geoffleyland/luasimplex.git
+    curl -O ftp://ftp.numerical.rl.ac.uk/pub/cuter/netlib.tar.gz
+    tar -xzf netlib.tar.gz
+    cd luasimplex
     make
     cd lua
-    lua[jit] test-netlib.lua --test-dir <where you put the netlib data> --fast
+    luajit test-netlib.lua --test-dir ../../netlib/
 
-Options to try are `--no-ffi`, `--c-structs` and `--c` (which uses the c version).
+Options to try are lua instead of luajit, `--no-ffi`, and `--c` (which uses the c version of the rsm).
 
