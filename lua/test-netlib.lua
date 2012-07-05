@@ -119,6 +119,7 @@ local test_dir, speed, diagnose = "../../netlib-test-data/"
 local no_ffi = false
 local use_c = false
 local use_c_structs = false
+local max_tests = math.huge
 
 local i = 1
 while i <= #arg do
@@ -139,8 +140,11 @@ while i <= #arg do
   elseif arg[i] == "--test-dir" then
     i = i + 1
     test_dir = arg[i]
+  elseif arg[i] == "--max-tests" then
+    i = i + 1
+    max_tests = tonumber(arg[i])
   elseif arg[i] == "--help" then
-    io.stderr:write("Usage: ", arg[0], "[--fast|--check|--display] [--diagnose] [--no-ffi] [--c] [--c-structs] [--test-dir <location of netlib test data] [<test name>]\n")
+    io.stderr:write("Usage: ", arg[0], "[--fast|--check|--display] [--diagnose] [--no-ffi] [--c] [--c-structs] [--test-dir <location of netlib test data] [--max-tests <tests to execute>] [<test name>]\n")
   else
     if arg[i]:match("%-") then
       excluded[arg[i]:sub(2,-1):upper()] = true
@@ -219,7 +223,9 @@ io.stderr:write("\n")
 
 total_time = 0
 
-for _, t in ipairs(tests) do
+for i, t in ipairs(tests) do
+  if i > max_tests then break end
+
   io.stderr:write(("%-10s\t"):format(t.name))
   local f = io.open(test_dir..t.fn)
   local status, M = pcall(mps.read, f, use_c_structs, use_c)
