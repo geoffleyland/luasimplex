@@ -366,7 +366,7 @@ const char *rsm_solve(const model *M, instance *I)
   {
     ++I->iterations;
     if (I->iterations > 10000)
-      return "iteration limit";
+      return "Iteration limit";
  
     compute_pi(M, I);
     compute_reduced_cost(M, I);
@@ -379,7 +379,7 @@ const char *rsm_solve(const model *M, instance *I)
         for (i = 0; i != nrows; ++i)
         {
           if (I->basics[i] > nvars && fabs(I->x[I->basics[i] ]) > TOLERANCE)
-            return "infeasible";
+            return "Infeasible";
         }
         I->costs = M->c;
         for (i = 0; i != nrows; ++i)
