@@ -4,9 +4,6 @@ local error, ipairs, pairs, tonumber = error, ipairs, pairs, tonumber
 local luasimplex = require("luasimplex")
 local rsm = require("luasimplex.rsm")
 
-local monitor = {}
-setfenv(1, monitor)
-
 
 -- Diagnostic calculations -----------------------------------------------------
 
@@ -21,7 +18,7 @@ local function compute_objective(M, I)
 end
 
 
-function check_variable_bounds(M, I, S)
+local function check_variable_bounds(M, I, S)
   local failures = {}
   for i = 1, M.nrows + M.nvars do
     local x = I.x[i]
@@ -33,7 +30,7 @@ function check_variable_bounds(M, I, S)
 end
 
 
-function check_constraints(M, I, S)
+local function check_constraints(M, I, S)
   local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
 
   local failures = {}
@@ -50,7 +47,7 @@ function check_constraints(M, I, S)
 end
 
 
-function check(M, I, S, what)
+local function check(M, I, S, what)
   if what == "iteration" then
     local variable_failures, constraint_failures = check_variable_bounds(M, I, S), check_constraints(M, I, S)
     if variable_failures then
@@ -187,7 +184,7 @@ end
 
 local function display_entering_variable(M, I, S)
   local i = I.entering_index
-  if i then
+  if i and i >= 0 then
     io.stderr:write(("  Entering variable %s, rc = %g, cycles = %d\n"):format(display_variable(M, I, i), I.reduced_costs[i], I.basic_cycles[i]))
   else
     io.stderr:write("  No entering variable\n")
@@ -277,7 +274,7 @@ local display_actions =
 }
 
 
-function display(M, I, S, what)
+local function display(M, I, S, what)
   local f = display_actions[what:lower()]
   if f then f(M, I, S) end
 end
@@ -358,7 +355,7 @@ local diagnose_actions =
 }
 
 
-function diagnose(M, I, S, what)
+local function diagnose(M, I, S, what)
   local f = diagnose_actions[what:lower()]
   if f then f(M, I, S) end
 end
@@ -366,7 +363,7 @@ end
 
 --------------------------------------------------------------------------------
 
-return monitor
+return { check = check, display = display, diagnose = diagnose }
 
 
 -- EOF -------------------------------------------------------------------------

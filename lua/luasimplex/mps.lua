@@ -4,9 +4,6 @@ local error, ipairs, pairs, tonumber, tostring, type =
 
 local luasimplex = require("luasimplex")
 
-local mps = {}
-setfenv(1, mps)
-
 
 --------------------------------------------------------------------------------
 
@@ -120,7 +117,7 @@ local sections =
 }
 
 
-function read(f, c_structs, c_arrays)
+local function read(f, c_structs, c_arrays)
   c_structs = c_structs or false
   local offset = c_arrays and -1 or 0
 
@@ -241,7 +238,7 @@ function read(f, c_structs, c_arrays)
 end
 
 
-function write(M)
+local function write(M)
   local variable_names = type(M) == "table" and M.variable_names
   local constraint_names = type(M) == "table" and M.constraint_names
   io.stderr:write("Variables:\n")
@@ -263,7 +260,7 @@ end
 
 --------------------------------------------------------------------------------
 
-return mps
+return { read = read, write = write }
 
 
 -- EOF -------------------------------------------------------------------------

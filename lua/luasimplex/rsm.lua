@@ -4,9 +4,6 @@ local error, type = error, type
 local luasimplex = require("luasimplex")
 local iarray, darray = luasimplex.iarray, luasimplex.darray
 
-local rsm = {}
-setfenv(1, rsm)
-
 
 -- Constants -------------------------------------------------------------------
 
@@ -84,7 +81,7 @@ local function find_entering_variable(M, I)
 end
 
 
-function compute_gradient(M, I, entering_index, gradient)
+local function compute_gradient(M, I, entering_index, gradient)
   -- gradient = Binverse * entering column of A
   local nrows, Bi = M.nrows, I.Binverse
   local indexes, elements, row_starts = M.indexes, M.elements, M.row_starts
@@ -116,7 +113,7 @@ function compute_gradient(M, I, entering_index, gradient)
 end
 
 
-function find_leaving_variable(M, I, entering_index, gradient)
+local function find_leaving_variable(M, I, entering_index, gradient)
   local TOL = I.TOLERANCE
 
   local s = I.status[entering_index]
@@ -226,7 +223,7 @@ local function initialise_artificial_variables(M, I, offset)
 end
 
 
-function initialise(M, I, S, c_arrays)
+local function initialise(M, I, S, c_arrays)
   offset = c_arrays and -1 or 0
 
   local nrows = M.nrows
@@ -245,7 +242,7 @@ end
 
 -- Solve -----------------------------------------------------------------------
 
-function solve(M, I, S)
+local function solve(M, I, S)
   local TOLERANCE = I.TOLERANCE
   
   local nvars, nrows = M.nvars, M.nrows
@@ -332,7 +329,13 @@ end
 
 --------------------------------------------------------------------------------
 
-return rsm
+return
+{
+  initialise            = initialise,
+  solve                 = solve,
+  compute_gradient      = compute_gradient,
+  find_leaving_variable = find_leaving_variable,
+}
 
 
 -- EOF -------------------------------------------------------------------------
