@@ -16,7 +16,10 @@ local M =
   b = luasimplex.darray(2, 3, 3),
 }
 
-objective, x = rsm.solve(M, {})
+local I = luasimplex.new_instance(M.nrows, M.nvars)
+rsm.initialise(M, I, {})
+
+objective, x = rsm.solve(M, I, {})
 
 io.stderr:write(("Objective: %g\n"):format(objective))
 io.stderr:write("  x:")
